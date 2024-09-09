@@ -8,10 +8,6 @@ DOPT is a LLC method, and is a variant of D-learning method. DOPT is designed to
 ![image](https://github.com/user-attachments/assets/26da8133-a487-4131-9aa8-a10e44c6ec5b)
 
 ## 1. Files Structure
-"_\experiment_results_" contains experimental results of three algorithms (DDPG, D-learning, DOPT) across two systems (Inverted pendulum and Single-track car).
-
-"_\figs_and_animations_" contains figures and animations.
-
 "_\systems_and_functions_" contains files of dynamic systems, algorithms and kits.
 
 "_\_\_4\_\_.ipynb_" is code for algorithm \_\_ implemented on system \_\_.
