@@ -3,7 +3,7 @@
 + D-learning is a sample-based model-free Learning-based Lyapunov Control (LLC) method proposed by [Quan Quan](https://arxiv.org/abs/2206.03809) as a parallel method to Q-learning. It collects
 system data and improves controllers with learned Lyapunov candidates and D-functions
 
-+ DOPT is a LLC method, and is a variant of D-learning method. DOPT is designed to uses current and historical system data to online iteratively optimize the NN controller within the framework of Lyapunov theory. It can obtain a faster converging controller with a stability guarantee, higher sample efficiency and more steady training process than vanilla D-learning.
++ DOPT is a LLC method, and is a variant of D-learning method. DOPT is designed to uses current and historical system data to online iteratively optimize the NN controller within the framework of Lyapunov theory. It can obtain a faster converging controller with a stability guarantee, higher sample efficiency and more steady training process than vanilla D-learning and DDPG.
 
 ![image](https://github.com/user-attachments/assets/26da8133-a487-4131-9aa8-a10e44c6ec5b)[Overview of the DOPT]
 
@@ -50,8 +50,17 @@ system data and improves controllers with learned Lyapunov candidates and D-func
 
 + **Unzip the file "_experiment_results.zip_" before running the code** to make sure there is a folder for running data storage.
 
-## 3. Interpretation of Results 
+## 3. Results and Interpretations
 
+### 3.1 DDPG in Inverted Pendulum
+
+
+### 3.2 D-learning in Inverted Pendulum
+
+![image](https://github.com/user-attachments/assets/9106200d-9828-41f6-b5f8-7019fd3fe6c7)
+
+
+### 3.3 DOPT in Inverted Pendulum
 Spikes may be spotted in the training process, which is caused by the calculation method for convergence steps. 
 This presentation result is somewhat misleading and can actually be viewed as a smooth process, the real convergence performance should be analyzed together with the state trajectory.
 
