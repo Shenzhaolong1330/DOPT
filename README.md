@@ -48,15 +48,15 @@ system data and improves controllers with learned Lyapunov candidates and D-func
 
 + Run "_\_\_4\_\_.ipynb_" in environments that satisfy "_requirements.txt_".
 
-+ **Unzip the file "_experiment_results.zip_" before running the code.**
++ **Unzip the file "_experiment_results.zip_" before running the code** to make sure there is a folder for running data storage.
 
 ## 3. Interpretation of Results 
 
-Spikes may be spotted in the training process, which is caused by the calculation method for convergence steps. This presentation result is somewhat misleading and can actually be viewed as a smooth process, the real convergence performance should be analyzed together with the trajectory.
+Spikes may be spotted in the training process, which is caused by the calculation method for convergence steps. 
+This presentation result is somewhat misleading and can actually be viewed as a smooth process, the real convergence performance should be analyzed together with the state trajectory.
 
-![image](https://github.com/user-attachments/assets/3589db29-e8eb-40a0-b8b2-837ce0748b97)[Training process of DOPT]
-
-![image](https://github.com/user-attachments/assets/35e35b40-0ed8-41f7-b9bc-f1bbbd0fc0bf)[Trajectory of spike situation in the iteration 12]
+![image](https://github.com/user-attachments/assets/35661149-fb00-4796-8aeb-b12382f3c0ed)
+[Training processes of DOPT and Trajectory of spike situation in different run]
 
 ## 4. Maintaince
 For any technical issues, please contact Zhaolong Shen (shenzhaolong@buaa.edu.cn) or Quan Quan (qq_buaa@buaa.edu.cn).
