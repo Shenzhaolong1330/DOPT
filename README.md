@@ -67,7 +67,7 @@ This presentation result is somewhat misleading and can actually be viewed as a 
 [Training processes of DOPT and Trajectory of spike situation in different run]
 
 ## 4. Maintaince
-For any technical issues, please contact Zhaolong Shen (shenzhaolong@buaa.edu.cn) or Quan Quan (qq_buaa@buaa.edu.cn).
+For any technical issues, please do not hesitate to contact Shen Zhaolong (shenzhaolong@buaa.edu.cn) or Quan Quan (qq_buaa@buaa.edu.cn).
 
 ## 5. <u>Declaration to the Reviewer</u>
 
