@@ -27,7 +27,7 @@ system data and improves controllers with learned Lyapunov candidates and D-func
 ### 1.2 File Structure
 
 - DOPT-main
-  - experiment_results
+  - experiment\_results
     - DDPG
       - data
       - figs
@@ -42,7 +42,7 @@ system data and improves controllers with learned Lyapunov candidates and D-func
       - model
   - figs_and_animations
   - systems_and_functions
-    - __pycache__
+    - \_\_pycache\_\_
 
 ## 2. Run
 
@@ -53,10 +53,9 @@ system data and improves controllers with learned Lyapunov candidates and D-func
 ## 3. Results and Interpretations
 
 ### 3.1 DDPG in Inverted Pendulum
-
+![Convergence Speed and Judgment](https://github.com/user-attachments/assets/04679edb-dca0-4fe1-964a-bd58c152f199)
 
 ### 3.2 D-learning in Inverted Pendulum
-
 ![image](https://github.com/user-attachments/assets/9106200d-9828-41f6-b5f8-7019fd3fe6c7)
 
 
