@@ -904,7 +904,7 @@ class OffPolicyDlearningProcess():
 
                 self.learn_V_LNN(sample_data = sample_state_space,
                                 iteration = 4*10**3,
-                                plot_loss = 1,
+                                plot_loss = 0,
                                 plot_lyapuonv = 0,
                                 plot_rollout = 0,
                                 lr = 2*1e-4,
@@ -940,7 +940,7 @@ class OffPolicyDlearningProcess():
 
                 self.policy_improvement(sample_data = sample_state_space_mini,
                                         iteration = 4 * 10**2,
-                                        plot_loss = 1,
+                                        plot_loss = 0,
                                         lr = 2 * 1e-4)
 
                 _, _, traj_sim = self.system.run_rk4(t_sim = plot_time_span,
