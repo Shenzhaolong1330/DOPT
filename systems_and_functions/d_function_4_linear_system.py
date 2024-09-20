@@ -434,7 +434,7 @@ class DFunction4LinearSystem():
                 Z[i, j] = self.D_value(x).item()
 
         plt.figure(figsize=(8, 6))
-        # contour = plt.contour(X, Y, Z, levels=20)  # 可以调整 levels 参数来调整等高线的密度
+        # contour = plt.contour(X, Y, Z, levels=20)
         plt.contourf(X, Y, Z, levels=100)
         plt.xlabel(r"$\mathregular{x_{1}}$")
         plt.ylabel(r"$\mathregular{x_{2}}$")
@@ -481,10 +481,6 @@ class DFunction4LinearSystem():
         return mean + variance*0.1 + positive_penalty*1000
 
     def upper_bound_mean_variance_loss(self,output):
-        """
-        损失函数效果评价：
-        不能完全代表收敛速度，存在损失函数下降但是收敛变慢的情况
-        """
         positive_penalty = torch.sum(torch.relu(output))
         upper_bound = torch.max(output, dim=0).values
         mean = torch.mean(output)

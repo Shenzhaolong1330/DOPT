@@ -21,7 +21,7 @@ class OffPolicyDlearningProcess():
     def __init__(
         self, 
         system: ControlAffineSystem,
-        actor_bound: float = 100.0,
+        actor_bound: float = 50.0,
         n_hiddens_policy: int = 16,
         n_hiddens_lyapunov: int = 128,
         n_hiddens_dfunction: int = 128,
@@ -33,11 +33,9 @@ class OffPolicyDlearningProcess():
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'),
         save_path = 'saved_files/Algorithm2_Dlearning_based_DDPG/'
     ):
-        # DDPGProcess.__init__(self, system, actor_bound, n_hiddens_policy, n_hiddens_lyapunov, n_hiddens_dfunction, device, save_path)
-        # 属性分配
-        self.system = system # 动力学系统
-        self.gamma = gamma # 遗忘参数
-        self.tau = tau # 软更新权重
+        self.system = system
+        self.gamma = gamma
+        self.tau = tau
         self.n_states = self.system.state_dims()
         self.n_actions = self.system.control_dims()
         self.device = device
@@ -45,14 +43,14 @@ class OffPolicyDlearningProcess():
         self.min_training_batch = min_training_batch
         self.buffer = collections.deque(maxlen=replay_buffer_capacity)
         self.sample_num = sample_num
-        # 训练网络
+
         self.actor = PolicyNet(self.system.state_dims(), n_hiddens_policy, self.system.control_dims(), actor_bound).to(device)
         self.lyapunov = LyapunovNet(self.system.state_dims(), n_hiddens_lyapunov).to(device)
         self.dfunction = DFunctionNet(self.system.state_dims(), n_hiddens_dfunction, self.system.control_dims()).to(device)
-        # 目标网络
+
         self.target_actor = PolicyNet(self.system.state_dims(), n_hiddens_policy, self.system.control_dims(), actor_bound).to(device)
         self.target_lyapunov = LyapunovNet(self.system.state_dims(), n_hiddens_lyapunov).to(device)
-        # 使训练网络与网络的初始参数相同
+
         self.target_actor.load_state_dict(self.actor.state_dict())
         self.target_lyapunov.load_state_dict(self.lyapunov.state_dict())
 
@@ -81,7 +79,7 @@ class OffPolicyDlearningProcess():
             action, 
             next_state, 
             weight):
-        # 以list类型保存
+
         self.buffer.append((state, action, next_state, weight))
 
 
@@ -91,7 +89,6 @@ class OffPolicyDlearningProcess():
 
     def buffer_sample(self, batch_size):
         transitions = random.sample(self.buffer, batch_size)
-        # 将数据集拆分开来
         state, action, next_state, weight = zip(*transitions)
         return state, action, next_state, weight
 
@@ -190,7 +187,7 @@ class OffPolicyDlearningProcess():
         sample_number_in_radius: int = 0,
         invariant_sample: bool = True,
         sample_plot: bool = True,
-        the_controller = None, # 指定控制器，默认为ControlAffineSystem自带控制器
+        the_controller = None, 
         title = "Samples"
     )->torch.Tensor:
         print('---------------------Sampling Training Data---------------------')
@@ -286,11 +283,8 @@ class OffPolicyDlearningProcess():
 
         objective = cp.Minimize(-eta)
         problem = cp.Problem(objective, constraints)
-        # 求解优化问题
         problem.solve()
         print("status:",problem.status)
-        # print("optimal value",problem.value)
-        # 输出解
         print("var eta (eta should be positive):", eta.value)
         print("var P:", P.value)
         self.P = torch.tensor(P.value).float()
@@ -341,9 +335,6 @@ class OffPolicyDlearningProcess():
             plot_loss: bool = True,
             plot_lyapuonv: bool = True
     ):
-        """
-        用lyapunov_net拟合二次型lyapunov作为初始化
-        """
         print('--------------------Initializing Lyapunov---------------------')
         random_data = [-x_train_lim + torch.rand(sample_num) * 2 * x_train_lim for _ in range(self.system.state_dims())]
         training_data = torch.stack(random_data, dim=1).to(self.device)
@@ -571,7 +562,6 @@ class OffPolicyDlearningProcess():
         s = states # torch.Size([2000, 1, 2])
         s_ = next_states # torch.Size([2000, 1, 2])
         s0 = torch.zeros_like(s[0]).to(device) # torch.Size([1, 2])
-
         # sample_data = sample_data.detach().clone()
         # N = sample_data.shape[0]
         # s = sample_data[:,0].permute(0, 2, 1)
@@ -639,14 +629,12 @@ class OffPolicyDlearningProcess():
         """
         positive_penalty = torch.sum(torch.relu(output))
         upper_bound = torch.max(output, dim=0).values
-        # 新加的lower_bound
         lower_bound = torch.min(output, dim=0).values
         mean = torch.mean(output)
         variance = torch.var(output)
         # return upper_bound*100 + lower_bound*0 + mean*30 + variance*0 + positive_penalty*10
-        return upper_bound*5 + lower_bound*0 + mean*100 + variance*0 + positive_penalty*1000
+        return upper_bound*70 + lower_bound*0 + mean*100 + variance*0 + positive_penalty*1000
 
-    # # DONE: 策略改进
     def policy_improvement(
         self,
         sample_data,
@@ -697,8 +685,8 @@ class OffPolicyDlearningProcess():
             self.direct_update(net = self.actor, 
                                target_net = self.target_actor)
         else:
-            # self.soft_update(net = self.actor, 
-            self.direct_update(net = self.actor, 
+            self.soft_update(net = self.actor, 
+            # self.direct_update(net = self.actor, 
                              target_net = self.target_actor)
 
 
@@ -709,7 +697,7 @@ class OffPolicyDlearningProcess():
             print('----------------------------------Save Data--------------------------------')
             index = np.arange(0,len(self.step2converge_record))
 
-            fig = plt.figure(figsize=(8, 4))
+            fig = plt.figure(figsize=(12.5, 6))
             ax = fig.add_subplot()
 
             ax.plot(index, self.step2converge_record, label = 'steps to convergence', color='c', marker = 'o')
@@ -736,9 +724,7 @@ class OffPolicyDlearningProcess():
 
             filename = self.save_path + 'data/converge_record_data.txt'
 
-            # 打开文件用于写入
             with open(filename, 'w') as file:
-                # 写入列表名和数据
                 file.write(f"Step to Converge Record: {self.step2converge_record}\n")
                 file.write(f"Step to Unit Ball Record: {self.step2unitball_record}\n")
                 file.write(f"Step to Norm 2 Ball Record: {self.step2norm2ball_record}\n")
@@ -793,9 +779,9 @@ class OffPolicyDlearningProcess():
                 self.learn_V_LNN(sample_data = None,
                             iteration = 1*10**3,
                             plot_loss = 0,
-                            plot_lyapuonv = 1,
+                            plot_lyapuonv = 0,
                             lr = 2 * 1e-3,
-                            save_fig = 1,
+                            save_fig = 0,
                             index = i)
 
                 self.learn_D_DNN(sample_data = None,
@@ -803,25 +789,14 @@ class OffPolicyDlearningProcess():
                             plot_loss = 0,
                             plot_dfunction = 0,
                             lr = 2*1e-4,
-                            save_fig = 1,
+                            save_fig = 0,
                             index = i)
                 
                 if i == 1:
                     self.model_save(name = '_initial')
 
-                # sim_data_policy_improvement = self.sample_training_data(sample_radius_trajectory = 3,
-                #                                 sample_trajectory_number = 0,
-                #                                 sample_number_per_trajectory = 0,
-                #                                 sample_radius_random = 4,
-                #                                 sample_number_in_radius = 1500,
-                #                                 invariant_sample = 1,
-                #                                 sample_plot = 0,
-                #                                 the_controller = self.target_actor.Controller,
-                #                                 title = 'PI training data')
-
                 self.policy_improvement(sample_data = sim_data,
-                                        # sample_data = sim_data_policy_improvement,
-                                        iteration = 10*10**2,
+                                        iteration = 450,
                                         plot_loss = 0,
                                         lr = 2*1e-4,
                                         index = i)
@@ -829,15 +804,15 @@ class OffPolicyDlearningProcess():
                 sim_data_policy_improvement = self.sample_training_data(sample_radius_trajectory = 3,
                                                 sample_trajectory_number = 0,
                                                 sample_number_per_trajectory = 0,
-                                                sample_radius_random = 1,
-                                                sample_number_in_radius = 1000,
+                                                sample_radius_random = 0.4,
+                                                sample_number_in_radius = 500,
                                                 invariant_sample = 1,
                                                 sample_plot = 0,
                                                 the_controller = self.target_actor.Controller,
                                                 title = 'PI training data')
 
                 self.policy_improvement(sample_data = sim_data_policy_improvement,
-                                        iteration = 1*10**2,
+                                        iteration = 50,
                                         plot_loss = 0,
                                         lr = 2*1e-4,
                                         index = i)
@@ -858,21 +833,17 @@ class OffPolicyDlearningProcess():
                                         title = 'after PI in iteration {}'.format(i),
                                         save_fig = 1,
                                         save_path = self.save_path + 'figs/')
-                # 打开文件用于写入
                 # filename = 'saved_files/Algorithm2_Dlearning_based_DDPG/data/converge_record_data.txt'
                 filename = self.save_path + 'data/converge_record_data.txt'
                 with open(filename, 'w') as file:
-                    # 写入列表名和数据
                     file.write(f"Step to Converge Record: {self.step2converge_record}\n")
                     file.write(f"Step to Unit Ball Record: {self.step2unitball_record}\n")
                     file.write(f"Step to Norm 2 Ball Record: {self.step2norm2ball_record}\n")
                     
                 self.model_save()
-                # 策略更新步数不能太多，以百为单位进行更新 400 - 800 次为好
                 self.plot_save_converge_steps()
             plt.clf()
             plt.close()
-
             
     def off_policy_dlearning_main_iteration_4_stcar(
         self,
@@ -993,17 +964,13 @@ class OffPolicyDlearningProcess():
                                     save_fig = 1,
                                     save_path = self.save_path+'figs/')
                 
-                # 打开文件用于写入
-                # filename = 'saved_files/Algorithm2_Dlearning_based_DDPG/data/converge_record_data.txt'
                 filename = self.save_path + 'data/converge_record_data.txt'
                 with open(filename, 'w') as file:
-                    # 写入列表名和数据
                     file.write(f"Step to Converge Record: {self.step2converge_record}\n")
                     file.write(f"Step to Unit Ball Record: {self.step2unitball_record}\n")
                     file.write(f"Step to Norm 2 Ball Record: {self.step2norm2ball_record}\n")
                     
                 self.model_save()
-                # 策略更新步数不能太多，以百为单位进行更新 400 - 800 次为好
                 self.plot_save_converge_steps()
             plt.clf()
             plt.close()

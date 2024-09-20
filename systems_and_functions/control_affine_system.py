@@ -235,7 +235,7 @@ class ControlAffineSystem(ABC):
             self,
             data_sim: torch.Tensor,
             set_point: torch.Tensor = None,
-            epsilon: float = 0.2  #0.2
+            epsilon: float = 0.3  #0.2
     ):
         """
         judge if the system converge to set point

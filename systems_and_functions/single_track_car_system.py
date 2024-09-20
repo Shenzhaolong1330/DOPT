@@ -17,7 +17,7 @@ from typing import Callable, Tuple, Optional, List
 import scipy.linalg
 from systems_and_functions.kits import continuous_lqr, discrete_lqr
 from systems_and_functions.car_parameters import VehicleParameters
-plt.rcParams.update({'font.size': 20})  # 设置全局字体大小为16
+plt.rcParams.update({'font.size': 20})
 
 from systems_and_functions.control_affine_system import ControlAffineSystem
 
@@ -27,17 +27,17 @@ class SingleTrackCar(ControlAffineSystem):
     __g = 9.81
     
     # State indices
-    SXE = 0 # x方向位置误差，偏离期望路径距离
-    SYE = 1 # y方向位置误差
-    DELTA = 2 # 转向角，前轮转向角度
-    VE = 3 # 纵向速度误差，前进方向速度
-    PSI_E = 4 # 方向误差角
-    PSI_E_DOT = 5 # 方向误差角的导数
-    BETA = 6 # 侧向偏转角，当前方向与车辆中心线之间的夹角
+    SXE = 0 # x error
+    SYE = 1 # y error
+    DELTA = 2 # Steering angular
+    VE = 3 # longitudinal speed error
+    PSI_E = 4 # Direction error angle
+    PSI_E_DOT = 5 # Derivative of directional error angle
+    BETA = 6 # Lateral deflection angle
 
     # Control indices
-    VDELTA = 0 # 转向角速度
-    ALONG = 1 # 纵向加速度
+    VDELTA = 0 # Steering angular velocity
+    ALONG = 1 # Longitudinal acceleration
 
 
     def __init__(
@@ -54,11 +54,6 @@ class SingleTrackCar(ControlAffineSystem):
         self.device = device
         self.car_params = VehicleParameters()
         self.goal_point = torch.zeros((1, SingleTrackCar.N_DIMS))
-
-        # # DONE: 处理 nominal_params: a dictionary giving the parameter values for the system.
-        #                     Requires keys ["psi_ref", "v_ref", "a_ref",
-        #                     "omega_ref", "mu_scale"] (_c and _s denote cosine and sine)
-        #                     "mu_scale" is optional
 
         if controller_params is None:
             print('No controller is involved.')
@@ -197,97 +192,6 @@ class SingleTrackCar(ControlAffineSystem):
         # f[km, SingleTrackCar.BETA] = 0.0
         return f
     
-    # def _f_batch(self,x: torch.Tensor):
-
-    #     batch_size = x.shape[0]
-    #     f = torch.zeros((batch_size, SingleTrackCar.N_DIMS, 1))
-    #     f = f.type_as(x)
-        
-    #     params = self.system_params
-    #     v_ref = torch.tensor(params["v_ref"])
-    #     a_ref = torch.tensor(params["a_ref"])
-    #     omega_ref = torch.tensor(params["omega_ref"])
-    #     if "mu_scale" in params:
-    #         mu_scale = torch.tensor(params["mu_scale"])
-    #     else:
-    #         mu_scale = torch.tensor(1.0)
-
-    #     # Extract the state variables and adjust for the reference
-    #     v = x[:, SingleTrackCar.VE] + v_ref
-    #     psi_e = x[:, SingleTrackCar.PSI_E]
-    #     psi_e_dot = x[:, SingleTrackCar.PSI_E_DOT]
-    #     psi_dot = psi_e_dot + omega_ref
-    #     beta = x[:, SingleTrackCar.BETA]
-    #     delta = x[:, SingleTrackCar.DELTA]
-    #     sxe = x[:, SingleTrackCar.SXE]
-    #     sye = x[:, SingleTrackCar.SYE]
-
-    #     g = SingleTrackCar.__g  # [m/s^2]
-
-    #     # create equivalent bicycle parameters
-    #     mu = mu_scale * self.car_params.tire_p_dy1
-    #     C_Sf = -self.car_params.tire_p_ky1 / self.car_params.tire_p_dy1
-    #     C_Sr = -self.car_params.tire_p_ky1 / self.car_params.tire_p_dy1
-    #     lf = self.car_params.a
-    #     lr = self.car_params.b
-    #     m = self.car_params.m
-    #     Iz = self.car_params.I_z
-
-    #     # We want to express the error in x and y in the reference path frame, so
-    #     # we need to get the dynamics of the rotated global frame error
-    #     dsxe_r = v * torch.cos(psi_e + beta) - v_ref + omega_ref * sye
-    #     dsye_r = v * torch.sin(psi_e + beta) - omega_ref * sxe
-
-    #     # f[:, SingleTrackCar.SXE, 0] = dsxe_r
-    #     # f[:, SingleTrackCar.SYE, 0] = dsye_r
-    #     # f[:, SingleTrackCar.VE, 0] = -a_ref
-    #     # f[:, SingleTrackCar.DELTA, 0] = 0.0
-
-    #     f[:, SingleTrackCar.SXE] = dsxe_r
-    #     f[:, SingleTrackCar.SYE] = dsye_r
-    #     f[:, SingleTrackCar.VE] = -a_ref
-    #     f[:, SingleTrackCar.DELTA] = 0.0
-
-    #     # Use the single-track dynamics if the speed is high enough, otherwise fall back
-    #     # to the kinematic model (since single-track becomes singular for small v)
-    #     use_kinematic_model = v.abs() < 0.1
-
-    #     # Single-track dynamics
-    #     # f[:, SingleTrackCar.PSI_E, 0] = psi_e_dot
-    #     f[:, SingleTrackCar.PSI_E] = psi_e_dot
-    #     # Sorry this is a mess (it's ported from the commonroad models)
-    #     # f[:, SingleTrackCar.PSI_E_DOT, 0] = (
-    #     f[:, SingleTrackCar.PSI_E_DOT] = (
-    #         -(mu * m / (v * Iz * (lr + lf)))
-    #         * (lf ** 2 * C_Sf * g * lr + lr ** 2 * C_Sr * g * lf)
-    #         * psi_dot
-    #         + (mu * m / (Iz * (lr + lf)))
-    #         * (lr * C_Sr * g * lf - lf * C_Sf * g * lr)
-    #         * beta
-    #         + (mu * m / (Iz * (lr + lf))) * (lf * C_Sf * g * lr) * delta
-    #     )
-    #     # f[:, SingleTrackCar.BETA, 0] = (
-    #     f[:, SingleTrackCar.BETA] = (
-    #         (
-    #             (mu / (v ** 2 * (lr + lf))) * (C_Sr * g * lf * lr - C_Sf * g * lr * lf)
-    #             - 1
-    #         )
-    #         * psi_dot
-    #         - (mu / (v * (lr + lf))) * (C_Sr * g * lf + C_Sf * g * lr) * beta
-    #         + mu / (v * (lr + lf)) * (C_Sf * g * lr) * delta
-    #     )
-    #     # Kinematic dynamics
-    #     lwb = lf + lr
-    #     km = use_kinematic_model
-    #     # f[km, SingleTrackCar.PSI_E, 0] = (
-    #     f[km, SingleTrackCar.PSI_E] = (
-    #         v[km] * torch.cos(beta[km]) / lwb * torch.tan(delta[km]) - omega_ref
-    #     ) 
-    #     # f[km, SingleTrackCar.PSI_E_DOT, 0] = 0.0
-    #     # f[km, SingleTrackCar.BETA, 0] = 0.0
-    #     f[km, SingleTrackCar.PSI_E_DOT] = 0.0
-    #     f[km, SingleTrackCar.BETA] = 0.0
-    #     return f
      
     def _g(self,x: torch.Tensor):
         # Extract batch size and set up a tensor for holding the result
@@ -506,16 +410,6 @@ class SingleTrackCar(ControlAffineSystem):
         n_controls = self.control_dims()
         x_current = torch.zeros(1, n_dims, device=device)
         delta_x = delta_x.to(device)
-        
-        # delta_x = torch.tensor([0, 0, -1, 0, 0, 0, 0], dtype=torch.float32).to(device)
-        # 采样范围：
-        # SXE = 0 # x方向位置误差，偏离期望路径距离
-        # SYE = 1 # y方向位置误差
-        # DELTA = 2 # 转向角，前轮转向角度 -1
-        # VE = 3 # 纵向速度误差，前进方向速度 -0.5 - 5
-        # PSI_E = 4 # 方向误差角 -1 - 1
-        # PSI_E_DOT = 5 # 方向误差角的导数 -5 - 5
-        # BETA = 6 # 侧向偏转角，当前方向与车辆中心线之间的夹角 -3 - 3
         x_current = x_current + (self.goal_point.type_as(x_current) + delta_x)
         u_current = torch.zeros(1, n_controls).type_as(x_current)
 
@@ -649,82 +543,13 @@ class SingleTrackCar(ControlAffineSystem):
             fig.savefig(save_path + title + '.png', dpi=600)
         fig.show()
 
-
-    # def plot_multi_traj(
-    #         self,
-    #         multi_traj_sim: np.array,
-    #         title = 'Tracking',
-    #         save_fig = False,
-    #         save_path = 'saved_files/figs/'
-    # ):
-    #     num = multi_traj_sim.shape[0]
-    #     sns.set_theme(context="talk", style="white")
-
-    #     fig, axs = plt.subplots(1, 2)
-    #     fig.set_size_inches(16, 8)
-
-    #     ax = axs[0]
-    #     tracking_trajectory_color = sns.color_palette("pastel")[4]
-    #     start_point_color = sns.color_palette("pastel")[3]
-    #     x_ref = traj_sim[:,2]
-    #     y_ref = traj_sim[:,3]
-    #     x = traj_sim[:,0]
-    #     y = traj_sim[:,1]
-    #     x0 = x[0]
-    #     y0 = y[0]
-    #     err = traj_sim[:,4]
-    #     ax.plot(
-    #         x_ref,
-    #         y_ref,
-    #         linestyle="dotted",
-    #         label="Reference",
-    #         color="black",
-    #         linewidth = 4
-    #     )
-    #     ax.plot(
-    #         x,
-    #         y,
-    #         linestyle="solid",
-    #         label="Controller",
-    #         color=tracking_trajectory_color,
-    #         alpha = 0.8,
-    #         linewidth = 4
-    #     )
-    #     ax.scatter(
-    #         x0,
-    #         y0,
-    #         marker = 'o',
-    #         label="Start",
-    #         color=start_point_color
-    #     )
-    #     ax.set_xlabel("$x$")
-    #     ax.set_ylabel("$y$")
-    #     ax.set_title('Tracking Trajectory')
-    #     ax.grid(True)
-    #     ax.legend()
-    #     ax.set_aspect("equal")  
-
-    #     ax = axs[1]
-    #     ax.plot(np.arange(err.shape[0])*self.dt, err, color = sns.color_palette("pastel")[0],linewidth = 4)
-    #     ax.set_xlabel("$t / s$")
-    #     ax.set_ylabel("error")
-    #     ax.grid(True)
-    #     ax.set_title('Tracking Error')
-    #     ax.set_xlim(0, (err.shape[0]+50)*self.dt)
-    #     ax.set_ylim(0.0, np.max(err)*1.05)
-    #     fig.suptitle(title)
-    #     if save_fig:
-    #         fig.savefig(save_path + title + '.png', dpi=600)
-    #     fig.show()
-
-
     def sample_training_data_stcar(
         self,
         sample_state: dict = {'sxe_range':(-2, 2), 'sye_range': (-2, 2), 'delta_range': (-1, 1), 've_range': (-0.5, 1), 'psi_e_range': (-1, 1), 'psi_e_dot_range': (-3, 3), 'beta_range': (-2, 2)},
         sample_num: int = 1000,
         invariant_sample: bool = True,
         sample_plot: bool = True,
-        the_controller = None, # 指定控制器，默认为ControlAffineSystem自带控制器
+        the_controller = None, # Specify the controller, default to the built-in controller of ControlAffineSystem
         title = "Samples"
     )->torch.Tensor:
         print('------------------Sampling Training Data STCar------------------')
@@ -736,16 +561,15 @@ class SingleTrackCar(ControlAffineSystem):
         if invariant_sample:
             torch.manual_seed(0)
             torch.cuda.manual_seed_all(0)
-        # 定义状态空间的稳定采样范围
         # sample_state: dict = {'sxe_range':(-2, 2), 'sye_range': (-2, 2), 'delta_range': (-1, 1), 've_range': (-0.5, 1), 'psi_e_range': (-1, 1), 'psi_e_dot_range': (-3, 3), 'beta_range': (-2, 2)},
-        sxe_range = sample_state['sxe_range']  # SXE x方向位置误差
-        sye_range = sample_state['sye_range']  # SYE y方向位置误差
-        delta_range = sample_state['delta_range']  # DELTA 转向角
-        ve_range = sample_state['ve_range']  # VE 纵向速度误差
-        psi_e_range = sample_state['psi_e_range']  # PSI_E 方向误差角
-        psi_e_dot_range = sample_state['psi_e_dot_range']  # PSI_E_DOT 方向误差角的导数
-        beta_range = sample_state['beta_range'] # BETA 侧向偏转角
-        # 随机采样
+        sxe_range = sample_state['sxe_range']  # SXE X-direction position error
+        sye_range = sample_state['sye_range']  # SYE Y-direction position error
+        delta_range = sample_state['delta_range']  # DELTA Steering angle
+        ve_range = sample_state['ve_range']  # VE Longitudinal velocity error
+        psi_e_range = sample_state['psi_e_range']  # PSI_E Direction error angle
+        psi_e_dot_range = sample_state['psi_e_dot_range']  # PSI_E_DOT Derivative of directional error angle
+        beta_range = sample_state['beta_range'] # BETA Lateral deflection angle
+        # Random sampling
         sxe_samples = torch.rand(sample_num, 1) * (sxe_range[1] - sxe_range[0]) + sxe_range[0]
         sye_samples = torch.rand(sample_num, 1) * (sye_range[1] - sye_range[0]) + sye_range[0]
         delta_samples = torch.rand(sample_num, 1) * (delta_range[1] - delta_range[0]) + delta_range[0]
@@ -755,7 +579,7 @@ class SingleTrackCar(ControlAffineSystem):
         beta_samples = torch.rand(sample_num, 1) * (beta_range[1] - beta_range[0]) + beta_range[0]
         state_samples = torch.cat((sxe_samples, sye_samples, delta_samples, ve_samples, psi_e_samples, psi_e_dot_samples, beta_samples), dim=1).unsqueeze(2)
         state_samples = state_samples.permute(0,2,1)
-        # 模型不支持批处理
+        # The model does not support batch processing
         sample_state_space = torch.zeros(state_samples.shape[0],2,SingleTrackCar.N_DIMS,1).to(self.device)
         sample_control_output = torch.zeros(state_samples.shape[0],SingleTrackCar.N_CONTROLS,1).to(self.device)
         prog_bar_range = tqdm.trange(0, state_samples.shape[0], desc="sample state space", leave=True)

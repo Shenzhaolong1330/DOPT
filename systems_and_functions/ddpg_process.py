@@ -18,7 +18,7 @@ class DDPGProcess:
     def __init__(
         self, 
         system: ControlAffineSystem,
-        actor_bound: float = 100.0,
+        actor_bound: float = 200.0,
         n_hiddens_policy: int = 16,
         n_hiddens_critic: int = 128,
         sigma: float = 0.5,
@@ -29,10 +29,9 @@ class DDPGProcess:
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'),
         save_path = 'saved_files/Algorithm3_DDPG/'
     ):
-        # 属性分配
-        self.system = system # 动力学系统
-        self.sigma = sigma # 噪声标准差
-        self.tau = tau # 软更新权重
+        self.system = system
+        self.sigma = sigma 
+        self.tau = tau
         self.gamma = gamma
         self.n_states = self.system.state_dims()
         self.n_actions = self.system.control_dims()
@@ -40,15 +39,12 @@ class DDPGProcess:
         self.save_path = save_path
         self.min_training_batch = min_training_batch
         self.buffer = collections.deque(maxlen=replay_buffer_capacity)
-        # 训练网络
         self.actor = PolicyNet(self.system.state_dims(), n_hiddens_policy, self.system.control_dims(), actor_bound).to(device)
         self.critic = QValueNet(self.system.state_dims(), n_hiddens_critic, self.system.control_dims()).to(device)
 
-        # 目标网络
         self.target_actor = PolicyNet(self.system.state_dims(), n_hiddens_policy, self.system.control_dims(), actor_bound).to(device)
         self.target_critic = QValueNet(self.system.state_dims(), n_hiddens_critic, self.system.control_dims()).to(device)
 
-        # 使训练网络与网络的初始参数相同
         self.target_actor.load_state_dict(self.actor.state_dict())
         self.target_critic.load_state_dict(self.critic.state_dict())
 
@@ -101,9 +97,7 @@ class DDPGProcess:
             self.model_save()
             filename = self.save_path + 'data/converge_record_data.txt'
 
-            # 打开文件用于写入
             with open(filename, 'w') as file:
-                # 写入列表名和数据
                 file.write(f"Step to Converge Record: {self.step2converge_record}\n")
                 file.write(f"Step to Unit Ball Record: {self.step2unitball_record}\n")
                 file.write(f"Step to Norm 2 Ball Record: {self.step2norm2ball_record}\n")
@@ -118,10 +112,6 @@ class DDPGProcess:
             iteration: int = 2*10**4,
             lr: float = 1e-4
     ):
-        """
-        用神经网络拟合专家策略（线性静态状态反馈）
-        在接近平衡点处更多采样，使拟合更精准
-        """
         print('---------------------Initializing Policy------------------------')
 
         random_data = [-x_train_lim + torch.rand(400)*2*x_train_lim for _ in range(self.system.state_dims())]
@@ -148,15 +138,6 @@ class DDPGProcess:
                 print ('Epoch [{}/{}], Loss: {:.10f}'.format(i + 1, iteration, loss.item()))
             loss.backward()
             optimizer.step()
-        # test部分
-        # x_ = torch.linspace(-x_test_lim, x_test_lim, sample_num, dtype=torch.float)
-        # test_data = torch.stack([x_] * self.system.state_dims(), dim=1).to(self.device)
-        # labels = test_data @ K.t().to(self.device)
-        # y_test = self.actor.Controller(test_data.t())
-        # plt.plot(x.cpu().detach().numpy(), labels.cpu().detach().numpy(), c='red', label='True')
-        # plt.plot(x.cpu().detach().numpy(), y_test.t().cpu().detach().numpy(), c='blue', label='Pred')
-        # plt.legend(loc='best')
-        # plt.show()
     
     
     def sample_training_data(
@@ -168,7 +149,7 @@ class DDPGProcess:
         sample_number_in_radius: int = 0,
         invariant_sample: bool = True,
         sample_plot: bool = True,
-        the_controller = None, # 指定控制器，默认为ControlAffineSystem自带控制器
+        the_controller = None,
         title = "Samples"
     )->torch.Tensor:
         print('---------------------Sampling Training Data---------------------')
@@ -248,10 +229,6 @@ class DDPGProcess:
             theta_dot,
             action
     ):
-        """
-        theta = 0表示倒立
-        reward: 越接近零, 越大越好
-        """
         return -theta**2 - 0.1*theta_dot - 0.001*action**2
         
     
@@ -262,7 +239,6 @@ class DDPGProcess:
             reward, 
             next_state, 
             done):
-        # 以list类型保存
         self.buffer.append((state, action, reward, next_state, done))
 
 
@@ -272,7 +248,6 @@ class DDPGProcess:
 
     def buffer_sample(self, batch_size):
         transitions = random.sample(self.buffer, batch_size)
-        # 将数据集拆分开来
         state, action, reward, next_state, done = zip(*transitions)
         return state, action, reward, next_state, done
 
@@ -302,7 +277,6 @@ class DDPGProcess:
         sample_data = rollout_data.detach().clone()
         N = sample_data.shape[0]
         state = sample_data[:,0].permute(0, 2, 1)
-        # next_state = sample_data[:,1].permute(0, 2, 1)
         theta = state[:,:,0]
         theta_dot = state[:,:,1]
         action = self.target_actor.Controller(state.squeeze(1).t()).t()
@@ -315,16 +289,14 @@ class DDPGProcess:
            
             
     def soft_update(self, net, target_net):
-        # 获取训练网络和目标网络需要更新的参数
         for param_target, param in zip(target_net.parameters(), net.parameters()):
-            # 训练网络的参数更新要综合考虑目标网络和训练网络
             param_target.data.copy_(param_target.data * (1 - self.tau) + param.data * self.tau)
         
         
     def update(self,
                batch_size: int = 1500,
-               actor_lr: float = 0.01, 
-               critic_lr: float = 0.01,
+               actor_lr: float = 0.001, 
+               critic_lr: float = 0.1,
                actor_descent_step: int = 100,
                critic_descent_step: int = 100
                ):
@@ -337,11 +309,8 @@ class DDPGProcess:
         next_states = torch.stack(next_state).squeeze(1).to(self.device)
         dones = torch.tensor(done, dtype=torch.float).view(-1, 1).to(self.device)
 
-        # 价值目标网络获取下一时刻的每个动作价值[b,n_states]-->[b,n_actors]
         next_a_values = self.target_actor.Controller(next_states.t()).view(-1, 1)
-        # 策略目标网络获取下一时刻状态选出的动作价值 [b,n_states+n_actions]-->[b,1]
         next_q_values = self.target_critic(next_states, next_a_values)
-        # 当前时刻的动作价值的目标值 [b,1]
         q_targets = rewards + self.gamma * next_q_values * (1 - dones)
 
         critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
@@ -349,11 +318,8 @@ class DDPGProcess:
         
         print('-----------------------Updating Critic----------------------')
         for _ in range(critic_descent_step):    
-            # 当前时刻动作价值的预测值 [b,n_states+n_actions]-->[b,1]
             q_values = self.critic(states, actions)
-            # 预测值和目标值之间的均方差损失
             critic_loss = torch.mean(F.mse_loss(q_values, q_targets))
-            # 价值网络梯度
             critic_loss.backward(retain_graph = True)
             with torch.no_grad(): 
                 critic_optimizer.step()
@@ -361,20 +327,15 @@ class DDPGProcess:
         
         print('------------------------Updating Actor----------------------')
         for _ in range(actor_descent_step):
-            # 当前状态的每个动作的价值 [b, n_actions]
             actor_a_values = self.actor.Controller(states.t()).view(-1, 1)
-            # 当前状态选出的动作价值 [b,1]
             score = self.critic(states, actor_a_values)
-            # 计算损失
             actor_loss = torch.mean(score)
             actor_loss.backward(retain_graph = True)
-            # 策略网络梯度
             with torch.no_grad(): 
                 actor_optimizer.step()
                 actor_optimizer.zero_grad()
 
         self.soft_update(self.actor, self.target_actor)
-        # 软更新价值网络的参数
         self.soft_update(self.critic, self.target_critic)
 
 
@@ -437,9 +398,9 @@ class DDPGProcess:
                 #                                 the_controller = self.actor.Controller,
                 #                                 title = 'sample training data')
                 self.buffer_add_sampledata(sim_data)
-                self.update(batch_size = self.min_training_batch,
+                self.update(batch_size = self.buffer_size(),
                             actor_lr = 0.01, 
-                            critic_lr = 0.01,
+                            critic_lr = 0.001,
                             actor_descent_step = 1,
                             critic_descent_step = 1)
                 

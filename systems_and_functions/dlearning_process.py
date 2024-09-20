@@ -14,25 +14,24 @@ from systems_and_functions.networks import PolicyNet, LyapunovNet, DFunctionNet
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 random_seed = 3
 
-# D learning 类，包含了D learning中的各种功能函数 
+
 class DlearningProcess:
     def __init__(
         self, 
         system: ControlAffineSystem,
-        actor_bound: float = 100.0,
+        actor_bound: float = 50.0,
         n_hiddens_policy: int = 16,
         n_hiddens_lyapunov: int = 128,
         n_hiddens_dfunction: int = 128,
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'),
         save_path = 'saved_files/Algorithm1_Dlearning/'
     ):
-        # 属性分配
-        self.system = system # 动力学系统
+
+        self.system = system 
         self.n_states = self.system.state_dims()
         self.n_actions = self.system.control_dims()
         self.device = device
         self.save_path = save_path
-        # 训练网络
         self.actor = PolicyNet(self.system.state_dims(), n_hiddens_policy, self.system.control_dims(), actor_bound).to(device)
         self.lyapunov = LyapunovNet(self.system.state_dims(), n_hiddens_lyapunov).to(device)
         self.dfunction = DFunctionNet(self.system.state_dims(), n_hiddens_dfunction, self.system.control_dims()).to(device)
@@ -62,10 +61,6 @@ class DlearningProcess:
             iteration: int = 2*10**4,
             lr: float = 1e-4
     ):
-        """
-        用神经网络拟合专家策略（线性静态状态反馈）
-        在接近平衡点处更多采样，使拟合更精准
-        """
         print('---------------------Initializing Policy------------------------')
 
         random_data = [-x_train_lim + torch.rand(sample_num)*2*x_train_lim for _ in range(self.system.state_dims())]
@@ -95,15 +90,6 @@ class DlearningProcess:
                 print ('Epoch [{}/{}], Loss: {:.10f}'.format(i + 1, iteration, loss.item()))
             loss.backward()
             optimizer.step()
-        # test部分
-        # x_ = torch.linspace(-x_test_lim, x_test_lim, sample_num, dtype=torch.float)
-        # test_data = torch.stack([x_] * self.system.state_dims(), dim=1).to(self.device)
-        # labels = test_data @ K.t().to(self.device)
-        # y_test = self.actor.Controller(test_data.t())
-        # plt.plot(x.cpu().detach().numpy(), labels.cpu().detach().numpy(), c='red', label='True')
-        # plt.plot(x.cpu().detach().numpy(), y_test.t().cpu().detach().numpy(), c='blue', label='Pred')
-        # plt.legend(loc='best')
-        # plt.show()
     
     
     def sample_training_data(
@@ -115,7 +101,7 @@ class DlearningProcess:
         sample_number_in_radius: int = 0,
         invariant_sample: bool = True,
         sample_plot: bool = True,
-        the_controller = None, # 指定控制器，默认为ControlAffineSystem自带控制器
+        the_controller = None, 
         title = "Samples"
     )->torch.Tensor:
         print('---------------------Sampling Training Data---------------------')
@@ -211,11 +197,9 @@ class DlearningProcess:
 
         objective = cp.Minimize(-eta)
         problem = cp.Problem(objective, constraints)
-        # 求解优化问题
         problem.solve()
         print("status:",problem.status)
         # print("optimal value",problem.value)
-        # 输出解
         print("var eta (eta should be positive):", eta.value)
         print("var P:", P.value)
         self.P = torch.tensor(P.value).float()
@@ -269,9 +253,6 @@ class DlearningProcess:
             plot_loss: bool = True,
             plot_lyapuonv: bool = True
     ):
-        """
-        用lyapunov_net拟合二次型lyapunov作为初始化
-        """
         print('--------------------Initializing Lyapunov---------------------')
         random_data = [-x_train_lim + torch.rand(sample_num) * 2 * x_train_lim for _ in range(self.system.state_dims())]
         training_data = torch.stack(random_data, dim=1).to(self.device)
@@ -405,7 +386,6 @@ class DlearningProcess:
         save_fig = False,
         index = 0
     ):
-        # DONE：同步到其他的文件中去
         print('-----------------------Plotting {}------------------------'.format(select))
         x = np.linspace(-xlim, xlim, 100)
         y = np.linspace(-ylim, ylim, 120)
@@ -416,13 +396,10 @@ class DlearningProcess:
         # others = torch.ones(1,self.n_states-2).to(device)*0.3
         for i in range(X.shape[0]):
             for j in range(X.shape[1]):
-            # 将X和Y的值合并成一个二维列向量
                 xy = torch.tensor([[X[i, j], Y[i, j]]], dtype=torch.float32).to(device)
                 if self.n_states > 2:
                     # others = torch.rand(1,self.n_states-2).to(device)*0.1
                     xy = torch.cat((xy, others), dim=1).to(device)
-                # DONE: xy补零补到7维
-                # 计算Lyapunov函数值
                 if select == 'Dfunction':
                     Z[i, j] = self.dfunction.D(xy,self.actor.Controller(xy).t()).item()
                 else:
@@ -432,7 +409,6 @@ class DlearningProcess:
         ax = fig.add_subplot()
         if select == 'Dfunction':
             cmap_forward = cm.get_cmap('Blues') 
-            # 反向颜色映射
             cmap_reverse = cmap_forward.reversed()
             contour = ax.contourf(X, Y, Z, cmap=cmap_reverse, alpha = 1)
             # contour = ax.contourf(X, Y, Z, levels=np.arange(-50.8,0.8,0.8), cmap=cmap_reverse, alpha = 1)
@@ -563,7 +539,6 @@ class DlearningProcess:
         # return upper_bound*100 + lower_bound*0 + mean*30 + variance*0 + positive_penalty*10
         return upper_bound*10 + lower_bound*0 + mean*50 + variance*0 + positive_penalty*100
 
-    # DONE: 策略改进
     def policy_improvement(
         self,
         sample_data,
@@ -610,7 +585,7 @@ class DlearningProcess:
             print('----------------------------------Save Data--------------------------------')
             index = np.arange(0,len(self.step2converge_record))
 
-            fig = plt.figure(figsize=(8, 4))
+            fig = plt.figure(figsize=(12.5, 6))
             ax = fig.add_subplot()
 
             ax.plot(index, self.step2converge_record, label = 'step to convergence', color='c', marker = 'o')
@@ -638,9 +613,7 @@ class DlearningProcess:
 
             filename = self.save_path + 'data/converge_record_data.txt'
 
-            # 打开文件用于写入
             with open(filename, 'w') as file:
-                # 写入列表名和数据
                 file.write(f"Step to Converge Record: {self.step2converge_record}\n")
                 file.write(f"Step to Unit Ball Record: {self.step2unitball_record}\n")
                 # file.write(f"Step to Norm 0.5 Ball Record: {self.step2unitball_record}\n")
@@ -694,9 +667,9 @@ class DlearningProcess:
                 self.learn_V_LNN(sample_data = sim_data,
                             iteration = 1*10**3,
                             plot_loss = 0,
-                            plot_lyapuonv = 1,
+                            plot_lyapuonv = 0,
                             lr = 2 * 1e-3,
-                            save_fig = 1,
+                            save_fig = 0,
                             index = i)
 
                 self.learn_D_DNN(sample_data = sim_data,
@@ -707,9 +680,6 @@ class DlearningProcess:
 
                 if i == 1:
                     self.model_save(name = '_initial')
-                # DONE: 解决过拟合
-                # DONE: 李雅普诺夫函数叠加轨迹
-
                 # sim_data_ = self.simulate_rk4(x_initial = x_initial, 
                 #                         step_number = plot_step_num,
                 #                         use_controller = 1,
@@ -730,8 +700,8 @@ class DlearningProcess:
 
                 self.policy_improvement(sample_data = sim_data_policy_improvement,
                                         # sample_data = sim_data_policy_improvement
-                                        iteration = 10*10**2,
-                                        plot_loss = True,
+                                        iteration = 5*10**2,
+                                        plot_loss = 0,
                                         lr = 2*1e-4)
 
 
@@ -750,15 +720,12 @@ class DlearningProcess:
                                         title = 'after PI in iteration {}'.format(i),
                                         save_fig = 1,
                                         save_path =  self.save_path + 'figs/')
-                # 打开文件用于写入
                 filename = self.save_path + 'data/converge_record_data.txt'
                 with open(filename, 'w') as file:
-                    # 写入列表名和数据
                     file.write(f"Step to Converge Record: {self.step2converge_record}\n")
                     file.write(f"Step to Unit Ball Record: {self.step2unitball_record}\n")
                     file.write(f"Step to Norm 2 Ball Record: {self.step2norm2ball_record}\n")
                 self.model_save()
-            # 策略更新步数不能太多，以百为单位进行更新 400 - 800 次为好
                 self.plot_save_converge_steps()
             plt.clf()
             plt.close()
