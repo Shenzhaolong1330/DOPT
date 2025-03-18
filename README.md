@@ -5,6 +5,13 @@ system data and improves controllers with learned Lyapunov candidates and D-func
 
 + DOPT is a LLC method, and is a variant of D-learning method. DOPT is designed to uses current and historical system data to online iteratively optimize the NN controller within the framework of Lyapunov theory. It can obtain a faster converging controller with a stability guarantee, higher sample efficiency and more steady training process than vanilla D-learning and DDPG.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Zhaolong Shen and Quan Quan
+
+This is the official repository of the paper "DOPT: D-learning with Off-Policy Target toward Sample Efficiency and Fast Convergence Control".
+__Congratulations This work has been accepted by ICRA 2025!__
+
 ![image](https://github.com/user-attachments/assets/26da8133-a487-4131-9aa8-a10e44c6ec5b)[Overview of the DOPT]
 
 ## 1. Files
@@ -20,7 +27,7 @@ system data and improves controllers with learned Lyapunov candidates and D-func
 
 + "_Verifying_almost_Lypunov_Conditions.ipynb_" is code for verifying almost Lypunov Conditions in a sample-based way.
 
-+ "_experiment_results.zip_" is zipped file structure, unzip this file before running the code.
++ "_experiment_results_" is file structure containing process data and results of each algorithm.
 
 + "_requirements.txt_" is the list of required packages for successfully running these codes.
 
@@ -48,7 +55,7 @@ system data and improves controllers with learned Lyapunov candidates and D-func
 
 + Run "_\_\_4\_\_.ipynb_" in environments that satisfy "_requirements.txt_".
 
-+ **Unzip the file "_experiment_results.zip_" before running the code** to make sure there is a folder for running data storage.
+<!-- + **Unzip the file "_experiment_results.zip_" before running the code** to make sure there is a folder for running data storage. -->
 
 ## 3. Results and Interpretations
 
@@ -72,5 +79,3 @@ For any technical issues, please do not hesitate to contact Shen Zhaolong (shenz
 <!-- ## 5. <u>Declaration to the Reviewer</u>
 
 The performance of the algorithm DOPT depends on the selection of hyperparameters. After fine-tuning of hyperparameters, the algorithm's performance in this open-source code has exceeded the experimental results presented in the first submission. If this work is accepted, the latest finely tuned results will be added to the final version -->
-## 5. Congratulations
-This work has been accepted by ICRA 2025!
