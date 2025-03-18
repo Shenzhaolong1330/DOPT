@@ -11,6 +11,7 @@ This is the official repository of the paper "DOPT: D-learning with Off-Policy T
 + D-learning is a sample-based model-free Learning-based Lyapunov Control (LLC) method proposed by Prof.[Quan Quan](https://proceedings.mlr.press/v270/quan25a.html) as a parallel method to Q-learning. It collects system data and improves controllers with learned Lyapunov candidates and D-functions. This work is published in the Conference on Robot Learning (CoRL) 2024.
 
 + DOPT is a LLC method, and is a variant of D-learning method. DOPT is designed to uses current and historical system data to online iteratively optimize the NN controller within the framework of Lyapunov theory. It can obtain a faster converging controller with a stability guarantee, higher sample efficiency and more steady training process than vanilla D-learning and DDPG. 
++ Welcome to visit our lab's official website [Rfly](https://rfly.buaa.edu.cn/index.html#/home).
 + __Congratulations This work has been accepted by ICRA 2025!__
 
 ## 1. Files
@@ -73,7 +74,7 @@ This presentation result is somewhat misleading and can actually be viewed as a 
 [Training processes of DOPT and Trajectory of spike situation in different run]
 
 ## 4. Maintaince
-For any technical issues, please do not hesitate to contact Shen Zhaolong (shenzhaolong@buaa.edu.cn) or Quan Quan (qq_buaa@buaa.edu.cn).
+For any technical issues, please do not hesitate to contact Shen Zhaolong (shenzhaolong@buaa.edu.cn) or Prof.Quan Quan (qq_buaa@buaa.edu.cn).
 
 <!-- ## 5. <u>Declaration to the Reviewer</u>
 
