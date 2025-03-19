@@ -1,6 +1,7 @@
 # DOPT: D-learning with Off-Policy Target
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Conference](https://img.shields.io/badge/ICRA%20'25-Accepted-success)]()
 
 Zhaolong Shen and Quan Quan
 
@@ -21,7 +22,7 @@ This is the official repository of the paper "DOPT: D-learning with Off-Policy T
 
 + "_\figs_and_animations_" contains files of results presented in the paper and video clip.
 
-+ "_\systems_and_functions_" contains important files of dynamic system classes, algorithm classes, networks and tool kits.
++ "_\systems_and_functions_" contains important files of dynamic system classes (Control affine system, Linear system, Inverted pendulum, Cartpole and Single-track car), algorithm classes (DDPG, D-learning and DOPT), networks and tool kits.
 
 + "_\_\_4\_\_.ipynb_" is the code for algorithm "\_\_" implemented on system "\_\_".
 
