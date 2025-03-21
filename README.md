@@ -1,6 +1,7 @@
 # DOPT: D-learning with Off-Policy Target
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://docs.python.org/3.11/whatsnew/3.7.html)
 [![Conference](https://img.shields.io/badge/ICRA%20'25-Accepted-success)]()
 
 Zhaolong Shen and Quan Quan
