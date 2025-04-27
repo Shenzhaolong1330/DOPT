@@ -77,6 +77,18 @@ This presentation result is somewhat misleading and can actually be viewed as a 
 ## 4. Maintaince
 For any technical issues, please do not hesitate to contact Shen Zhaolong (shenzhaolong@buaa.edu.cn) or Prof.Quan Quan (qq_buaa@buaa.edu.cn).
 
+## 5.Citation and Reference
+If our work is useful to your research, please consider citing our paper.
+```
+@inproceedings{2025_ICRA_DOPT,
+  title = {DOPT: D-learning with Off-Policy Target toward Sample Efficiency and Fast Convergence Control},
+  author = {Shen, Zhaolong and Quan, Quan},
+  booktitle = {2025 IEEE International Conference on Robotics and Automation (ICRA)},
+  pages = {},
+  year = {2025},
+  organization = {IEEE}
+}
+```
 <!-- ## 5. <u>Declaration to the Reviewer</u>
 
 The performance of the algorithm DOPT depends on the selection of hyperparameters. After fine-tuning of hyperparameters, the algorithm's performance in this open-source code has exceeded the experimental results presented in the first submission. If this work is accepted, the latest finely tuned results will be added to the final version -->
