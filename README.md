@@ -80,14 +80,16 @@ For any technical issues, please do not hesitate to contact Shen Zhaolong (shenz
 ## 5.Citation and Reference
 If our work is useful to your research, please consider citing our paper.
 ```
-@inproceedings{2025_ICRA_DOPT,
-  title = {DOPT: D-learning with Off-Policy Target toward Sample Efficiency and Fast Convergence Control},
-  author = {Shen, Zhaolong and Quan, Quan},
-  booktitle = {2025 IEEE International Conference on Robotics and Automation (ICRA)},
-  pages = {},
-  year = {2025},
-  organization = {IEEE}
-}
+@INPROCEEDINGS{shen2025dopt,
+  author={Shen, Zhaolong and Quan, Quan},
+  booktitle={2025 IEEE International Conference on Robotics and Automation (ICRA)}, 
+  title={DOPT: D-Learning with Off-Policy Target toward Sample Efficiency and Fast Convergence Control}, 
+  year={2025},
+  volume={},
+  number={},
+  pages={9637-9643},
+  keywords={Training;Codes;Artificial neural networks;Robotics and automation;Convergence},
+  doi={10.1109/ICRA55743.2025.11127827}}
 ```
 <!-- ## 5. <u>Declaration to the Reviewer</u>
 
